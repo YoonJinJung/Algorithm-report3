@@ -45,7 +45,7 @@ void graphPrint(Graph *gph) {
     for (int i = 0; i < gph->count; i++)
     {
         head = gph->adj[i].next;
-        printf(" 노드 [ %d ](hotel-%d, tourtime = %d):", i, gph->siteinfo->siteIndex, gph->siteinfo->tourTime);
+        printf(" 노드 [ %d ](hotel-%d, tourtime = %d):", i, gph->siteinfo[i].siteIndex, gph->siteinfo[i].tourTime);
         while (head)
         {
             printf(" %d(%d) ", head->dest, head->cost);
@@ -55,21 +55,21 @@ void graphPrint(Graph *gph) {
     }
 }
 
+
 void siteRandomInit(Graph *sites, int siteN, int transN) {
     graphInit(sites, siteN);
     srand(time(NULL));
     //site들의 index를 설정, Graph의 노드 순서대로 대응된다.
     for (int i = 0; i < siteN; i++)
     {
-        sites->siteinfo[i].siteIndex = rand() % siteN + 1;
-        for(int j = 0; j < i; j++)  //Ignore duplicate indices.
-        {
-            if (sites->siteinfo[i].siteIndex == sites->siteinfo[i].siteIndex)
-            {
-                i--;
-                break;
-            }
-        }
+        sites->siteinfo[i].siteIndex = i + 1;
+    }
+    // 1~사이트개수 만큼 인덱스를 셔플해준다.
+    for (int i = 0; i < siteN; i++) {
+        int forshuf = rand() % siteN + 1;
+        int temp = sites->siteinfo[i].siteIndex;
+        sites->siteinfo[i].siteIndex = sites->siteinfo[forshuf].siteIndex;
+        sites->siteinfo[forshuf].siteIndex = temp;
     }
     //site들의 tour time을 설정.
     for (int i = 0; i < siteN; i++)
@@ -82,7 +82,7 @@ void siteRandomInit(Graph *sites, int siteN, int transN) {
         int src = rand() % siteN;
         int dst = rand() % siteN;
         //cost정하기
-        int cost = rand() % 50 + 1; // Transportation의 cost는 Transportation의 price이고 거리는 (price * 3) km 이다
+        int cost = rand() % 5 + 1; //cost규칙 (이동수단의 비용, 거리, 이동시간)
         //이미 추가한 edge인지 확인
         int dupl = addUndirectedEdge(sites, src, dst, cost);
         if (dupl) 
