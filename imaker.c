@@ -8,7 +8,7 @@ int main() {
         siteRandomInit(&gph, 100, 300, 100);
     } while (!isConected(&gph));
     Trunk *prev = NULL;
-    printTree(gph.siteinfo[10].hotelroot, prev, 0);
+    printTree(gph.siteinfo[10].hotels, gph.siteinfo[10].hotelroot, prev, 0);
     graphPrint(&gph);
     return 1;
 }

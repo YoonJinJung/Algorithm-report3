@@ -63,7 +63,8 @@ void siteRandomInit(Graph *sites, int siteN, int transN, int hotelN) {
     //site들에 hotel 을 연결
     for (int i = 0; i < siteN; i++)
     {
-        sites->siteinfo[i].hotelroot = hotelInit(hotelN)->root;
+        sites->siteinfo[i].hotels = hotelInit(hotelN);
+        sites->siteinfo[i].hotelroot = sites->siteinfo[i].hotels->root;
     }
     //site들의 tour time을 설정.
     for (int i = 0; i < siteN; i++)
@@ -410,15 +411,15 @@ void showTrunks(Trunk* p) {
     printf("%s", p->str);
 }
 
-void printTree(RbtNode* root, Trunk* prev, int isLeft) {
-    if (root == NULL) {
+void printTree(RBt *T, RbtNode* root, Trunk* prev, int isLeft) {
+    if (root == T->nil) {
         return;
     }
 
     char* prev_str = "    ";
     Trunk* trunk = createTrunk(prev, prev_str);
 
-    printTree(root->right, trunk, 1);
+    printTree(T, root->right, trunk, 1);
 
     if (prev == NULL) {
         trunk->str = "———";
@@ -439,7 +440,7 @@ void printTree(RbtNode* root, Trunk* prev, int isLeft) {
     }
     trunk->str = "   |";
 
-    printTree(root->left, trunk, 0);
+    printTree(T, root->left, trunk, 0);
 }
 
 RBt *hotelInit(int hotelN) {

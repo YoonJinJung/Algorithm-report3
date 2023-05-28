@@ -24,6 +24,7 @@ typedef struct trunk {
 
 //그래프 구조체 선언
 typedef struct siteData {
+    RBt *hotels;
     RbtNode *hotelroot;
     int tourTime;
 } SiteData;
@@ -60,7 +61,7 @@ void RB_DELETE(RBt *T, RbtNode *z);
 void RB_DELETE_FIXUP(RBt *T, RbtNode *z);
 Trunk* createTrunk(Trunk* prev, char* str);
 void showTrunks(Trunk* p);
-void printTree(RbtNode* root, Trunk* prev, int isLeft);
+void printTree(RBt *T, RbtNode* root, Trunk* prev, int isLeft);
 
 RBt *hotelInit(int hotelN);
 
