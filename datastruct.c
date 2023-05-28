@@ -45,7 +45,7 @@ void graphPrint(Graph *gph) {
     for (int i = 0; i < gph->count; i++)
     {
         head = gph->adj[i].next;
-        printf(" 노드 [ %d ](hotel-%d, tourtime = %d):", i, gph->siteinfo[i].siteIndex, gph->siteinfo[i].tourTime);
+        printf(" 노드 [ %d ](Site-%d, Tourtime = %d):", i, i, gph->siteinfo[i].tourTime);
         while (head)
         {
             printf(" %d(%d) ", head->dest, head->cost);
@@ -56,20 +56,14 @@ void graphPrint(Graph *gph) {
 }
 
 
-void siteRandomInit(Graph *sites, int siteN, int transN) {
+void siteRandomInit(Graph *sites, int siteN, int transN, int hotelN) {
     graphInit(sites, siteN);
     srand(time(NULL));
-    //site들의 index를 설정, Graph의 노드 순서대로 대응된다.
+    //site들의 index는 Graph의 노드 순서대로 대응된다.
+    //site들에 hotel 을 연결
     for (int i = 0; i < siteN; i++)
     {
-        sites->siteinfo[i].siteIndex = i + 1;
-    }
-    // 1~사이트개수 만큼 인덱스를 셔플해준다.
-    for (int i = 0; i < siteN; i++) {
-        int forshuf = rand() % siteN + 1;
-        int temp = sites->siteinfo[i].siteIndex;
-        sites->siteinfo[i].siteIndex = sites->siteinfo[forshuf].siteIndex;
-        sites->siteinfo[forshuf].siteIndex = temp;
+        sites->siteinfo[i].hotelroot = hotelInit(hotelN)->root;
     }
     //site들의 tour time을 설정.
     for (int i = 0; i < siteN; i++)
@@ -189,12 +183,10 @@ void RightRotate(RBt *T, RbtNode *x)
     return;
 }
 
-void RB_INSERT(RBt *T, int k)
+void RB_INSERT(RBt *T, RbtNode *z)
 {
     RbtNode *y = T->nil;
     RbtNode *x = T->root;
-    RbtNode *z = (RbtNode *)malloc(sizeof(RbtNode));
-    z->key = k;
     while (x != T->nil) {
         y = x;
         if (z->key < x->key)
@@ -439,7 +431,8 @@ void printTree(RbtNode* root, Trunk* prev, int isLeft) {
     }
 
     showTrunks(trunk);
-    printf(" %d(%d)\n", root->key, root->color);
+    
+    printf(" H- %d(price:%d)\n", root->idx, root->key);
 
     if (prev != NULL) {
         prev->str = prev_str;
@@ -447,5 +440,22 @@ void printTree(RbtNode* root, Trunk* prev, int isLeft) {
     trunk->str = "   |";
 
     printTree(root->left, trunk, 0);
+}
+
+RBt *hotelInit(int hotelN) {
+    //idx는 hotel number로 사용한다.
+    //key를 가격으로 사용하고 가격순으로 RBtree를 사용해 정렬 후 사용한다.
+    RBt *Hotels = RBTInit();
+    int *hotelidx = (int *)malloc(sizeof(int) * hotelN);
+
+    //RBtree에 random price로 호텔노드를 하나씩 넣어준다.
+    for (int i = 0; i < hotelN; i++) 
+    {
+        RbtNode *hotel = (RbtNode *)malloc(sizeof(RbtNode));
+        hotel->idx = i;
+        hotel->key = (rand() % 10 + 1) * 5; //5만원 부터 50만원까지 5만원 단위의 price 랜덤 생성
+        RB_INSERT(Hotels, hotel);
+    }
+    return Hotels;
 }
 
