@@ -404,29 +404,30 @@ Trunk* createTrunk(Trunk* prev, char* str) {
 }
 
 void showTrunks(Trunk* p) {
-    if (p == NULL) {
+    if (p == NULL) 
         return;
-    }
     showTrunks(p->prev);
     printf("%s", p->str);
 }
 
 void printTree(RBt *T, RbtNode* root, Trunk* prev, int isLeft) {
-    if (root == T->nil) {
+    if (root == T->nil) 
         return;
-    }
 
     char* prev_str = "    ";
     Trunk* trunk = createTrunk(prev, prev_str);
 
     printTree(T, root->right, trunk, 1);
 
-    if (prev == NULL) {
+    if (prev == NULL)
         trunk->str = "———";
-    } else if (isLeft) {
+    else if (isLeft) 
+    {
         trunk->str = ".———";
         prev_str = "   |";
-    } else {
+    }
+    else 
+    {
         trunk->str = "`———";
         prev->str = prev_str;
     }
@@ -435,9 +436,8 @@ void printTree(RBt *T, RbtNode* root, Trunk* prev, int isLeft) {
     
     printf(" H- %d(price:%d)\n", root->idx, root->key);
 
-    if (prev != NULL) {
+    if (prev != NULL) 
         prev->str = prev_str;
-    }
     trunk->str = "   |";
 
     printTree(T, root->left, trunk, 0);
