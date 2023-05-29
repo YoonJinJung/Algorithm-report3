@@ -52,7 +52,7 @@ int isConected(Graph *gph);
 RBt *RBTInit(void);
 void LeftRotate(RBt *T, RbtNode *x);
 void RightRotate(RBt *T, RbtNode *x);
-void RB_INSERT(RBt *T, RbtNode *z); //satellites 복사해주는거 다 해주기!!!!!
+void RB_INSERT(RBt *T, RbtNode *z); 
 void RB_INSERT_FIXUP(RBt *T, RbtNode *z);
 RbtNode *Successor(RBt *T, RbtNode *x);
 RbtNode *Minimum(RBt *T, RbtNode *x);
@@ -67,5 +67,6 @@ RBt *hotelInit(int hotelN);
 
 void makeIti();
 
-
+void inputUI_1(int *id, int *tourPeriod, int *budget, int *destN);
+void inputUI_2(int *destN, int *destlist);
 #endif

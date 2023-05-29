@@ -316,6 +316,7 @@ void RB_DELETE(RBt *T, RbtNode *z)
     
     if (y != z)
         z->key = y->key;
+        z->idx = y->idx;
     if (y->color == 0)
         RB_DELETE_FIXUP(T, x);
         
@@ -459,4 +460,3 @@ RBt *hotelInit(int hotelN) {
     }
     return Hotels;
 }
-
