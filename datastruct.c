@@ -4,27 +4,26 @@
 #include <time.h>
 #include "imaker.h"
 
+#define INF 100000
+
 void graphInit(Graph *gph, int count) {
     gph->count = count;
     gph->siteinfo = (SiteData *)malloc(sizeof(SiteData) * count);
-    gph->adj = (GraphEdge *)malloc(sizeof(GraphEdge) * count);
+    gph->adj = (GraphNode *)malloc(sizeof(GraphNode) * count);
     for (int i = 0; i < count; i++)
         gph->adj[i].next = NULL;
 }
 
 int addDirectedEdge(Graph *gph, int src, int dst, int cost) {
-    GraphEdge *temp = (GraphEdge *)malloc(sizeof(GraphEdge));
-    /*if (!temp) {
-        printf("Mem Err");
-        return -1;
-    }*/
-    GraphEdge *head = gph->adj[src].next;
+    GraphNode *temp = (GraphNode *)malloc(sizeof(GraphNode));
+    GraphNode *head = gph->adj[src].next;
     while (head) {
-        if (head->dest == dst)
+        if (head->dest == dst || head->vertex == dst)
             return 1;
         else 
             head = head->next;
     }
+    temp->vertex = src;
     temp->cost = cost;
     temp->dest = dst;
     temp->next = gph->adj[src].next;
@@ -37,7 +36,7 @@ int addUndirectedEdge(Graph *gph, int src, int dst, int cost) {
 }
 
 void graphPrint(Graph *gph) {
-    GraphEdge *head;
+    GraphNode *head;
     if (!gph) {
         printf("Empty graph");
         return;
@@ -69,7 +68,7 @@ void siteRandomInit(Graph *sites, int siteN, int transN, int hotelN) {
     //site들의 tour time을 설정.
     for (int i = 0; i < siteN; i++)
     {
-        sites->siteinfo[i].tourTime = rand() % 3 + 1;
+        sites->siteinfo[i].tourTime = rand() % 3 + 4;
     }
     //site들 사이를 edge 로 모두 이어질 때까지 이어준다.
     for (int i = 0; i < transN; i++)
@@ -91,7 +90,7 @@ void siteRandomInit(Graph *sites, int siteN, int transN, int hotelN) {
 void DFSrecur(Graph *gph, int index, int *visited) {
     int destination;
     visited[index] = 1;
-    GraphEdge *head = gph->adj[index].next;
+    GraphNode *head = gph->adj[index].next;
     while (head) 
     {
         destination = head->dest;
@@ -111,7 +110,7 @@ int DFS(Graph *gph, int source, int target) {
 int isConected(Graph *gph) {
     int count = gph->count;
     int *visited = (int *)calloc(count, sizeof(int));
-    GraphEdge *head;
+    GraphNode *head;
 
     for (int i = 0; i < count; i++)
     {
@@ -134,6 +133,172 @@ int isConected(Graph *gph) {
     }
 
     return 1;
+}
+
+int compare(int a, int b, int isMinHeap) {
+    if (isMinHeap)
+    {
+        if (a >= b) return 1;
+        else return 0;
+    }
+    else 
+    {
+        if (a >= b) return 0;
+        else return 1;
+    }
+}
+
+void percolateDown(PqData *a, int position, int size, int isMinHeap) {
+    int leftC = 2 * position + 1;
+    int rightC = leftC + 1;
+
+    int less = -1;
+    PqData temp;
+
+    if (leftC < size)
+        less = leftC;
+    
+    if (rightC < size && compare(a[leftC].key, a[rightC].key, isMinHeap))
+        less = rightC;
+    
+    if (less != -1 && compare(a[position].key, a[less].key, isMinHeap))
+    {
+        temp = a[position];
+        a[position] = a[less];
+        a[less] = temp;
+        percolateDown(a, less, size, isMinHeap);
+    }
+}
+
+void percolateUp(PqData *a, int position, int isMinHeap) {
+    int parent = (position - 1) / 2;
+    PqData temp;
+
+    if (parent >= 0)
+    {
+        if (compare(a[parent].key, a[position].key, isMinHeap))
+        {
+            temp = a[position];
+            a[position] = a[parent];
+            a[parent] = temp;
+            if (parent != 0)
+                percolateUp(a, parent, isMinHeap);
+        }
+    }
+}
+
+void heapify(PqData *arr, int size, int isMinHeap) {
+    for (int i = (size) / 2; i >= 0; i--)
+        percolateDown(arr, i, size, isMinHeap);
+}
+
+void HeapInit(Heap *hp, int size, int isMinHeap) {
+    hp->size = 0;
+    hp->capacity = size;
+    hp->isMinHeap = isMinHeap;
+    hp->arr = (PqData *)malloc(sizeof(PqData) * (size + 1));
+}
+
+void HeapAdd(Heap *hp, int val, int index) {
+    if (hp->size == hp->capacity)
+        return;
+    
+    hp->size++;
+    hp->arr[hp->size - 1].key = val;
+    hp->arr[hp->size - 1].idx = index;
+    percolateUp(hp->arr, hp->size - 1, hp->isMinHeap);
+}
+
+int HeapRemove(Heap *hp) {
+    int val = hp->arr[0].idx;
+    hp->arr[0] = hp->arr[hp->size - 1];
+    hp->size--;
+    percolateDown(hp->arr, 0, hp->size, hp->isMinHeap);
+
+    return val;
+}
+
+void HeapUpdateKey(Heap *hp, int key, int index) {
+    for (int i = 0; i < hp->size - 1; i++)
+    {
+        if (index == hp->arr[i].idx)
+        {
+            hp->arr[i].key = key;
+            heapify(hp->arr, hp->size, hp->isMinHeap);
+            break;
+        }
+    }
+}
+
+void printHeap(Heap *hp) {
+    for (int i = 0; i < hp->size; i++)
+    {
+        printf("\n%d 번째 키 : %d, 인덱스 : %d\n", i, hp->arr[i].key, hp->arr[i].idx);
+    }
+}
+
+int DijkstraReturnCost(Graph *gph, int source, int dst) {
+    int count = gph->count;
+    int val, destination, cost;
+    int initSource = source;
+    GraphNode *head;
+    TableNode *table = (TableNode *)malloc(sizeof(TableNode) * count);
+    for (int i = 0; i < count; i++)
+    {
+        table[i].cost = INF;
+        table[i].visited = 0;
+    }
+
+    table[source].cost = 0;
+
+    Heap PQ;
+    HeapInit(&PQ, gph->count, 1);
+    int i;
+    for (i = 0; i < gph->count; i++)
+        HeapAdd(&PQ, INF, i);
+
+    HeapUpdateKey(&PQ, 0, source);
+
+    while (PQ.size != 0) 
+    {
+        source = HeapRemove(&PQ);
+        table[source].visited = 1;
+        head = gph->adj[source].next;
+        while(head)
+        {
+            destination = head->dest;
+            cost = head->cost;
+            int newcost = table[source].cost + cost;
+            if (table[destination].visited == 0 && newcost < table[destination].cost)
+            {
+                table[destination].cost = newcost;
+                table[destination].prev = source;
+                HeapUpdateKey(&PQ, newcost, destination);
+            }
+            head = head->next;
+        }
+    }
+    
+    
+    if (table[dst].cost == INF)
+    {
+        printf("Path to Site-%d cost : Unreachable\n", dst);
+    }
+    else 
+    {
+        printf("  출발지 : Site-%d\n", dst);
+        int curr = dst;
+        while (table[curr].prev != initSource)
+        {
+            printf("  경유지 : Site-%d\n", table[curr].prev);
+            curr = table[curr].prev;
+        }
+        printf("  도착  : Site-%d\n\n", table[curr].prev);
+        printf("  이동 거리 : 총 %d km\n", table[dst].cost * 8);
+        printf("  이동 비용 : 총 %d 만 원 \n", table[dst].cost * 4);
+        printf("  소요 시간 : 총 %d 시간\n\n", table[dst].cost);
+    }
+    return table[dst].cost * 4;
 }
 
 RBt *RBTInit(void) {
@@ -411,14 +576,14 @@ void showTrunks(Trunk* p) {
     printf("%s", p->str);
 }
 
-void printTree(RBt *T, RbtNode* root, Trunk* prev, int isLeft) {
+void RB_Print(RBt *T, RbtNode* root, Trunk* prev, int isLeft) {
     if (root == T->nil) 
         return;
 
     char* prev_str = "    ";
     Trunk* trunk = createTrunk(prev, prev_str);
 
-    printTree(T, root->right, trunk, 1);
+    RB_Print(T, root->right, trunk, 1);
 
     if (prev == NULL)
         trunk->str = "———";
@@ -435,13 +600,13 @@ void printTree(RBt *T, RbtNode* root, Trunk* prev, int isLeft) {
 
     showTrunks(trunk);
     
-    printf(" H- %d(price:%d)\n", root->idx, root->key);
+    printf(" User-%d\n", root->key);
 
     if (prev != NULL) 
         prev->str = prev_str;
     trunk->str = "   |";
 
-    printTree(T, root->left, trunk, 0);
+    RB_Print(T, root->left, trunk, 0);
 }
 
 RBt *hotelInit(int hotelN) {
@@ -455,8 +620,32 @@ RBt *hotelInit(int hotelN) {
     {
         RbtNode *hotel = (RbtNode *)malloc(sizeof(RbtNode));
         hotel->idx = i;
-        hotel->key = (rand() % 10 + 1) * 5; //5만원 부터 50만원까지 5만원 단위의 price 랜덤 생성
+        hotel->key = (rand() % 10 + 1) * 3; //3만원 부터 30만원까지 5만원 단위의 price 랜덤 생성
         RB_INSERT(Hotels, hotel);
     }
     return Hotels;
+}
+
+Tourday *makeItinerary(Graph *sites, int *tourPeriod, int *destN, int *destlist) {
+    srand(time(NULL));
+    //destination 들을 셔플해준다.
+    for (int i = 0; i < (*destN); i++)
+    {
+        int sh = rand() % (*destN);
+        int temp = destlist[i];
+        destlist[i] = destlist[sh];
+        destlist[sh] = temp;
+    }
+    Tourday *days = (Tourday *)malloc(sizeof(Tourday) * (*destN));
+    for (int i = 0; i < (*destN); i++)
+    {
+        int siteI = destlist[i];
+        days[i].siteIndex = siteI;
+        days[i].tourtime = sites->siteinfo[siteI].tourTime;
+        days[i].hotelTonight = Search(sites->siteinfo[siteI].hotels, sites->siteinfo[siteI].hotelroot, rand() % 50);
+        days[i].hotelCost = days[i].hotelTonight->key;
+    }
+
+    return days;
+    
 }
