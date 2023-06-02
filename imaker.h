@@ -2,14 +2,6 @@
 #define GraphNode_H
 #include <stdlib.h>
 
-/*typedef struct pathdata {
-    int src;
-    int dst;
-    int *transArr;
-    int transtime;
-    int transcost;
-} PathData;*/
-
 //RBtree 구조체 선언
 typedef struct treeNode {
     int idx;
